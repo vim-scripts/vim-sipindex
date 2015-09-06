@@ -1,0 +1,13 @@
+This is a mirror of http://www.vim.org/scripts/script.php?script_id=5243
+
+this is a mirror of https://github.com/esoytekin/vim-sipindex
+
+shows index of a sipp file.
+Keyboard shortcuts
+
+    Enter -- goto sip message
+    R -- manuanlly refresh sip_index
+    D -- delete sip message
+    C -- comment sip message
+    U -- undo changes
+    q -- quit
