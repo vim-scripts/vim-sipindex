@@ -7,11 +7,19 @@ function! sipindex#Init() abort
         "echoerr "vim has to be compiled with python"
         "return
       "endif
+      let s:bufSipIndex = '__sipindex__'
       if (s:isSippFile()<0)
         echo "not sipp file"
+
+        if &ft!='sipindex'
+          if( bufexists(s:bufSipIndex))
+              if (bufwinnr(s:bufSipIndex) > 0 )
+                 bwipeout __sipindex__
+              endif
+          endif
+        endif
         return
       endif
-      let s:bufSipIndex = '__sipindex__'
       if( bufexists(s:bufSipIndex))
           if (bufwinnr(s:bufSipIndex) > 0 )
              call sipindex#Reload()
@@ -23,9 +31,10 @@ function! sipindex#Init() abort
 
       "call sipindex#Pyt()
       let sipArray = s:fillSipArray()
-      let bufNr = bufnr('%')
+      let g:current_buffer_name = bufname('%')
+      "vert belowright new "__sipindex__".bufname('%')
       vert belowright new __sipindex__
-      setlocal buftype=nofile bufhidden=wipe noswapfile nobuflisted nowrap foldmethod=marker
+      setlocal buftype=nofile bufhidden=wipe noswapfile nobuflisted nowrap foldmethod=marker filetype=sipindex
       nmap <buffer> <silent><CR> :call sipindex#SwitchAndGotoLine(getline('.'))<CR> 
       nmap <buffer> <silent><2-LeftMouse> :call sipindex#SwitchAndGotoLine(getline('.'))<CR> 
       nmap <buffer> <silent>R :call sipindex#ReloadIndex()<CR> 
@@ -37,15 +46,17 @@ function! sipindex#Init() abort
       "unlet g:arraySipIndex
       call append(0,sipArray)
       0 
-      execute "setlocal filetype=sipindex"
       call s:alignFields() 
 
       let helpText = s:getHelpText()
-      call append(line('0'),helpText)
-      call s:arrangeSize(getline(len(helpText)+1))
+      "call append(line('0'),helpText)
+      call append(line('$'),helpText)
+      "call s:arrangeSize(getline(len(helpText)+1))
+      call s:arrangeSize(getline(1))
       "nmap <buffer> <silent>q :call CloseScratch()<CR>
       nmap <buffer> <silent>q :bdelete<CR>
       setlocal nomodifiable
+      call s:goto_win(winnr('#'))
 endfunction
 
 " call from sipindex file"
@@ -54,9 +65,9 @@ function! sipindex#ReloadIndex() abort
         return
     endif
     let save_cursor = getpos(".")
-      call s:goto_win(1)
+    call s:goto_win(bufwinnr(g:current_buffer_name))
     call sipindex#Reload()
-      call s:goto_win(winnr('#'))
+    call s:goto_win(winnr('#'))
     call setpos('.',save_cursor)
 endfunction
 
@@ -65,9 +76,10 @@ function! sipindex#Reload() abort
         echo "not sipp file"
         return
       endif
-      if ( !bufexists(s:bufSipIndex) || bufwinnr(s:bufSipIndex) < 0 )
+      if (!exists("s:bufSipIndex") ||  !bufexists(s:bufSipIndex) || bufwinnr(s:bufSipIndex) < 0 )
         return
       endif
+      let g:current_buffer_name = bufname('%')
       let sipArray = s:fillSipArray()
       "call sipindex#Pyt()
       call s:goto_win(bufwinnr(s:bufSipIndex))
@@ -78,10 +90,12 @@ function! sipindex#Reload() abort
       0 
       call s:alignFields() 
       let helpText = s:getHelpText()
-      call append(line('0'),helpText)
-      call s:arrangeSize(getline(len(helpText)+1))
+      "call append(line('0'),helpText)
+      call append(line('$'),helpText)
+      "call s:arrangeSize(getline(len(helpText)+1))
+      call s:arrangeSize(getline(1))
       setlocal nomodifiable
-      call s:goto_win(1)
+      call s:goto_win(winnr('#'))
 
 endfunction
 
@@ -250,7 +264,7 @@ endf
 
 function! s:arrangeSize(firstLine)
     let columnPos = stridx(a:firstLine,":")
-    execute "vertical resize ".( columnPos+3 )
+    execute "vertical resize ".( columnPos+4 )
 endfunction
 
 function! s:alignFields() abort
